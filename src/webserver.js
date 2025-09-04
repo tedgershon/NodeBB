@@ -275,6 +275,17 @@ function validatePort(port) {
 	return port;
 }
 
+function configurePorts(port, isSafePort) {
+	if (!isSafePort || nconf.get('trust_proxy') === true) {
+		winston.info('🤝 Enabling \'trust proxy\'');
+		app.enable('trust proxy');
+	}
+
+	if (isSafePort && process.env.NODE_ENV !== 'development') {
+		winston.info('Using ports 80 and 443 is not recommend; use a proxy instead. See README.md');
+	}
+}
+
 async function listen() {
 	let port = nconf.get('port');
 	const isSocket = isNaN(port) && !Array.isArray(port);
@@ -282,15 +293,11 @@ async function listen() {
 	
 	// calls process.exit() if port is NULL/empty
 	port = validatePort(port);
-	port = parseInt(port, 10);
-	if ((port !== 80 && port !== 443) || nconf.get('trust_proxy') === true) {
-		winston.info('🤝 Enabling \'trust proxy\'');
-		app.enable('trust proxy');
-	}
 
-	if ((port === 80 || port === 443) && process.env.NODE_ENV !== 'development') {
-		winston.info('Using ports 80 and 443 is not recommend; use a proxy instead. See README.md');
-	}
+	port = parseInt(port, 10);
+	const isSafePort = (port === 80 || port === 443);
+
+	configurePorts(port, isSafePort);
 
 	const bind_address = ((nconf.get('bind_address') === '0.0.0.0' || !nconf.get('bind_address')) ? '0.0.0.0' : nconf.get('bind_address'));
 	const args = isSocket ? [socketPath] : [port, bind_address];
