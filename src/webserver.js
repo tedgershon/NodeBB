@@ -336,8 +336,6 @@ async function listen() {
 			throw err;
 		}
 	}
-	// print name in UI
-	console.log('Ted Gershon');
 
 	// push listenOnServer(...) to helper function
 	return listenOnServer(server, args, isSocket, port, bind_address, socketPath, oldUmask);
