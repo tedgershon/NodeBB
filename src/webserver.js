@@ -257,11 +257,7 @@ function setupCookie() {
 	return cookie;
 }
 
-async function listen() {
-	let port = nconf.get('port');
-	const isSocket = isNaN(port) && !Array.isArray(port);
-	const socketPath = isSocket ? nconf.get('port') : '';
-
+function validatePort(port) {
 	if (Array.isArray(port)) {
 		if (!port.length) {
 			winston.error('[startup] empty ports array in config.json');
@@ -276,6 +272,16 @@ async function listen() {
 			process.exit();
 		}
 	}
+	return port;
+}
+
+async function listen() {
+	let port = nconf.get('port');
+	const isSocket = isNaN(port) && !Array.isArray(port);
+	const socketPath = isSocket ? nconf.get('port') : '';
+	
+	// calls process.exit() if port is NULL/empty
+	port = validatePort(port);
 	port = parseInt(port, 10);
 	if ((port !== 80 && port !== 443) || nconf.get('trust_proxy') === true) {
 		winston.info('🤝 Enabling \'trust proxy\'');
